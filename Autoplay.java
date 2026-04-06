@@ -17,7 +17,7 @@ public class Autoplay {
         int pegSnapshot = board.getPegsRemaining();
 
         List<Move> bestSolution = new ArrayList<>();
-        int[] bestPegs = { pegSnapshot }; // worst case: no moves made
+        int[] bestPegs = { pegSnapshot }; // worst case, no moves made
 
         List<Move> current = new ArrayList<>();
         search(board, current, bestSolution, bestPegs);
@@ -39,11 +39,11 @@ public class Autoplay {
             return;
         }
 
-        // Prune: can't possibly beat best even if every remaining move removes a peg
-        // Each move removes exactly 1 peg, so minimum reachable = pegs - movesLeft
-        // We can't know movesLeft easily, so just prune if already worse than best
+        
+        
+        
         if (board.getPegsRemaining() >= bestPegs[0] && !current.isEmpty()) {
-            // Only prune branches that can't improve — keep searching if there's hope
+            // Only prune branches that can't improve - keep searching if there's hope
         }
 
         for (int r = 0; r < board.getRows(); r++) {
