@@ -66,7 +66,7 @@ public class GameUI extends JPanel implements MouseListener {
                     int pegPad = Math.max(3, size / 8);
                     g2.setColor(sel ? new Color(100, 100, 100) : new Color(100, 100, 100));
                     g2.fillOval(x + pegPad, y + pegPad, size - pegPad * 2, size - pegPad * 2);
-                    // Shine highlight
+
                     g2.setColor(sel ? new Color(100, 100, 100) : new Color(100, 100, 100));
                     int shine = Math.max(4, size / 6);
                     g2.fillOval(x + pegPad + 3, y + pegPad + 3, shine, shine);
@@ -116,6 +116,12 @@ public class GameUI extends JPanel implements MouseListener {
         }
         repaint();
     }
+
+    public void mousePressed(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+}
 
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}
