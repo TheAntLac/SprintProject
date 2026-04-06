@@ -46,7 +46,7 @@ public class Board {
             for (int c = 0; c < cols; c++)
                 grid[r][c] = -1;
 
-        // Row 0: 3 pegs starting at col 3
+        // Row 0: 3 pegs starting at  3
         int[] starts = {3, 2, 1, 2, 3};
         int[] lengths = {3, 5, 7, 5, 3};
         for (int r = 0; r < rows; r++)
@@ -66,7 +66,7 @@ public class Board {
             for (int c = 0; c < cols; c++)
                 grid[r][c] = -1;
 
-        // Valid if |r - 4| + |c - 4| <= 4
+        
         int center = 4;
         pegsRemaining = 0;
         for (int r = 0; r < rows; r++)
