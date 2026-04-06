@@ -125,7 +125,7 @@ public class Main {
 
                         int[] step = { 0 };
 
-                        // 400ms between moves — readable but not slow
+                        //  between moves - readable but not slow
                         autoplayTimer = new Timer(400, null);
                         autoplayTimer.addActionListener(tick -> {
                             if (step[0] >= solution.size()) {
@@ -157,7 +157,7 @@ public class Main {
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(Box.createVerticalStrut(16));
 
-        // New Game button
+        // New game button
         JButton newGameBtn = new JButton("New Game");
         newGameBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         newGameBtn.setFont(new Font("SansSerif", Font.BOLD, 13));
@@ -191,4 +191,5 @@ public class Main {
         frame.setResizable(false);
         frame.setVisible(true);
     }
+}
 }
