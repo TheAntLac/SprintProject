@@ -154,8 +154,127 @@ public class Main {
         });
 
         sidebar.add(autoplayBtn);
+        sidebar.add(Box.createVerticalStrut(8));
+
+        // ----- Record button -----
+        GameRecorder[] recorderRef = { new GameRecorder() };
+
+        JButton recordBtn = new JButton("⏺  Record");
+        recordBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        recordBtn.setFont(new Font("SansSerif", Font.BOLD, 13));
+        recordBtn.setBackground(new Color(160, 40, 40));
+        recordBtn.setForeground(Color.WHITE);
+        recordBtn.setFocusPainted(false);
+        recordBtn.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+
+        recordBtn.addActionListener(e -> {
+            GameRecorder rec = recorderRef[0];
+            if (rec.isRecording()) {
+                // Stop and save
+                rec.stopAndSave();
+                recordBtn.setText("⏺  Record");
+                recordBtn.setBackground(new Color(160, 40, 40));
+                statusLabel.setText("Saved!");
+                gameUI.setMoveListener(null);
+            } else {
+                // Start recording from current board state
+                rec.startRecording(boardRef[0]);
+                recordBtn.setText("⏹  Stop Rec");
+                recordBtn.setBackground(new Color(100, 20, 20));
+                statusLabel.setText("Recording...");
+                // Wire human moves into the recorder
+                gameUI.setMoveListener((fr, fc, tr, tc) -> rec.recordMove(fr, fc, tr, tc));
+            }
+        });
+
+        sidebar.add(recordBtn);
+        sidebar.add(Box.createVerticalStrut(8));
+
+        // ----- Replay button -----
+        Timer[] replayTimerRef = { null };
+
+        JButton replayBtn = new JButton("↩  Replay");
+        replayBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        replayBtn.setFont(new Font("SansSerif", Font.BOLD, 13));
+        replayBtn.setBackground(new Color(50, 80, 160));
+        replayBtn.setForeground(Color.WHITE);
+        replayBtn.setFocusPainted(false);
+        replayBtn.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+
+        replayBtn.addActionListener(e -> {
+            // If replay is already running, act as a stop button
+            if (replayTimerRef[0] != null && replayTimerRef[0].isRunning()) {
+                replayTimerRef[0].stop();
+                replayBtn.setText("↩  Replay");
+                replayBtn.setBackground(new Color(50, 80, 160));
+                statusLabel.setText(" ");
+                gameUI.setEnabled(true);
+                return;
+            }
+            // Stop autoplay if running
+            if (autoplayTimer != null && autoplayTimer.isRunning()) autoplayTimer.stop();
+            // Auto-stop any active recording before replaying
+            if (recorderRef[0].isRecording()) {
+                recorderRef[0].stopAndSave();
+                recordBtn.setText("⏺  Record");
+                recordBtn.setBackground(new Color(160, 40, 40));
+                gameUI.setMoveListener(null);
+            }
+
+            GameRecorder.ReplayData data = GameRecorder.loadReplay();
+            if (data == null) {
+                statusLabel.setText("No replay!");
+                return;
+            }
+
+            // Restore the board to the recorded starting state
+            Board replayBoard = new Board(data.boardType);
+            for (int r = 0; r < replayBoard.getRows(); r++)
+                for (int c = 0; c < replayBoard.getCols(); c++)
+                    replayBoard.setCell(r, c, data.initialGrid[r][c]);
+            replayBoard.setPegsRemaining(data.initialPegs);
+
+            boardRef[0] = replayBoard;
+            gameUI.setBoard(replayBoard);
+            gameUI.setEnabled(false);
+
+            autoplayBtn.setText("▶  Autoplay");
+            autoplayBtn.setBackground(new Color(40, 120, 60));
+            statusLabel.setText("Replaying...");
+            replayBtn.setText("■  Stop");
+            replayBtn.setBackground(new Color(100, 20, 20));
+
+            int[] step = { 0 };
+            replayTimerRef[0] = new Timer(400, null);
+            replayTimerRef[0].addActionListener(tick -> {
+                if (step[0] >= data.moves.size()) {
+                    replayTimerRef[0].stop();
+                    replayBtn.setText("↩  Replay");
+                    replayBtn.setBackground(new Color(50, 80, 160));
+                    statusLabel.setText("Replay done!");
+                    gameUI.setEnabled(true);
+                    return;
+                }
+                int[] m = data.moves.get(step[0]++);
+                replayBoard.makeMove(m[0], m[1], m[2], m[3]);
+                gameUI.repaint();
+            });
+            replayTimerRef[0].start();
+        });
+
+        sidebar.add(replayBtn);
         sidebar.add(Box.createVerticalGlue());
         sidebar.add(Box.createVerticalStrut(16));
+
+        // Randomize checkbox — sits directly above New Game as an option for it
+        JCheckBox randomizeCheck = new JCheckBox("Randomize");
+        randomizeCheck.setAlignmentX(Component.CENTER_ALIGNMENT);
+        randomizeCheck.setForeground(new Color(230, 200, 140));
+        randomizeCheck.setBackground(new Color(60, 40, 20));
+        randomizeCheck.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        randomizeCheck.setFocusPainted(false);
+        sidebar.add(randomizeCheck);
+        sidebar.add(Box.createVerticalStrut(6));
 
         // New game button
         JButton newGameBtn = new JButton("New Game");
@@ -167,10 +286,23 @@ public class Main {
         newGameBtn.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
         newGameBtn.addActionListener(e -> {
             if (autoplayTimer != null) autoplayTimer.stop();
+            if (replayTimerRef[0] != null) replayTimerRef[0].stop();
+            if (recorderRef[0].isRecording()) {
+                recorderRef[0].stopAndSave();
+                recordBtn.setText("⏺  Record");
+                recordBtn.setBackground(new Color(160, 40, 40));
+                gameUI.setMoveListener(null);
+            }
+            replayBtn.setText("↩  Replay");
+            replayBtn.setBackground(new Color(50, 80, 160));
             autoplayBtn.setText("▶  Autoplay");
             autoplayBtn.setBackground(new Color(40, 120, 60));
             statusLabel.setText(" ");
             Board newBoard = new Board(selectedType[0]);
+            if (randomizeCheck.isSelected()) {
+                int halfPegs = newBoard.getPegsRemaining() / 2;
+                newBoard.randomize(halfPegs);
+            }
             boardRef[0] = newBoard;
             gameUI.setBoard(newBoard);
             gameUI.setEnabled(true);
@@ -191,5 +323,4 @@ public class Main {
         frame.setResizable(false);
         frame.setVisible(true);
     }
-}
 }
