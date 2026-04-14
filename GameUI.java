@@ -7,8 +7,15 @@ public class GameUI extends JPanel implements MouseListener {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+
+    /** Notified whenever the human player makes a legal move. */
+    public interface MoveListener {
+        void onMove(int fromR, int fromC, int toR, int toC);
+    }
+
 	private Board board;
     private int selectedRow = -1, selectedCol = -1;
+    private MoveListener moveListener;
     private static final int STATUS_HEIGHT = 40;
     private static final int CANVAS_SIZE = 490; // fixed canvas, cells scale to fit
 
@@ -18,6 +25,8 @@ public class GameUI extends JPanel implements MouseListener {
         setBackground(new Color(200, 200, 200));
         addMouseListener(this);
     }
+
+    public void setMoveListener(MoveListener ml) { this.moveListener = ml; }
 
     public void setBoard(Board board) {
         this.board = board;
@@ -110,18 +119,15 @@ public class GameUI extends JPanel implements MouseListener {
                 selectedCol = col;
             }
         } else {
-            if (board.isValidMove(selectedRow, selectedCol, row, col))
+            if (board.isValidMove(selectedRow, selectedCol, row, col)) {
                 board.makeMove(selectedRow, selectedCol, row, col);
+                if (moveListener != null)
+                    moveListener.onMove(selectedRow, selectedCol, row, col);
+            }
             selectedRow = selectedCol = -1;
         }
         repaint();
     }
-
-    public void mousePressed(MouseEvent e) {}
-    public void mouseReleased(MouseEvent e) {}
-    public void mouseEntered(MouseEvent e) {}
-    public void mouseExited(MouseEvent e) {}
-}
 
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}
