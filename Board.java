@@ -1,5 +1,3 @@
-
-
 public class Board {
 	// Board Class
 	public void setCell(int row, int col, int value) { grid[row][col] = value; }
@@ -9,8 +7,10 @@ public class Board {
     private int[][] grid;
     private int pegsRemaining;
     private int rows, cols;
+    private BoardType boardType;
 
     public Board(BoardType type) {
+        this.boardType = type;
         switch (type) {
             case ENGLISH:  initEnglish();  break;
             case HEXAGON:  initHexagon();  break;
@@ -84,6 +84,7 @@ public class Board {
     public int getRows() { return rows; }
     public int getCols() { return cols; }
     public int getCell(int row, int col) { return grid[row][col]; }
+    public BoardType getBoardType() { return boardType; }
 
     public boolean isValidMove(int fromR, int fromC, int toR, int toC) {
         if (!inBounds(fromR, fromC) || !inBounds(toR, toC)) return false;
@@ -116,5 +117,30 @@ public class Board {
 
     private boolean inBounds(int r, int c) {
         return r >= 0 && r < rows && c >= 0 && c < cols && grid[r][c] != -1;
+    }
+
+    /**
+     * Randomizes the board by scattering exactly pegCount pegs across all valid
+     * cells, leaving the rest as empty holes. Invalid cells (-1) are untouched.
+     * pegCount is clamped to [1, totalValidCells - 1] so there is always at
+     * least one hole on the board.
+     */
+    public void randomize(int pegCount) {
+        // Collect all valid cell coordinates
+        java.util.List<int[]> validCells = new java.util.ArrayList<>();
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                if (grid[r][c] != -1)
+                    validCells.add(new int[]{r, c});
+
+        int total = validCells.size();
+        pegCount = Math.max(1, Math.min(pegCount, total - 1));
+
+        // Shuffle and assign: first pegCount cells get a peg, the rest get a hole
+        java.util.Collections.shuffle(validCells);
+        for (int i = 0; i < total; i++)
+            grid[validCells.get(i)[0]][validCells.get(i)[1]] = (i < pegCount) ? 1 : 0;
+
+        pegsRemaining = pegCount;
     }
 }
